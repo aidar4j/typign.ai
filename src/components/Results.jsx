@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
+import ReplayViewer from './ReplayViewer';
+import AIChat from './AIChat';
 
 export default function Results({ stats, onRestart }) {
-    const { wpm, accuracy, analysis } = stats;
+    const { wpm, accuracy, analysis, words, author } = stats;
+    const [showReplay, setShowReplay] = useState(false);
 
     return (
         <div className="card" style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -26,8 +29,22 @@ export default function Results({ stats, onRestart }) {
                 </div>
             </div>
 
+            {/* Replay Toggle */}
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <button
+                    className="btn btn-secondary"
+                    onClick={() => setShowReplay(!showReplay)}
+                >
+                    {showReplay ? 'Hide Replay' : 'Watch Typing Replay'}
+                </button>
+            </div>
+
+            {showReplay && (
+                <ReplayViewer keystrokes={analysis.keystrokes} words={words} author={author} />
+            )}
+
             {/* AI Coach */}
-            <div className="analysis-section" style={{ background: '#fafafa', padding: '2rem', borderRadius: '18px', border: '1px solid #eaeaea' }}>
+            <div className="analysis-section" style={{ background: '#fafafa', padding: '2rem', borderRadius: '18px', border: '1px solid #eaeaea', marginTop: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '10px' }}>
                     <span style={{ fontSize: '1.5rem' }}>🤖</span>
                     <h3 style={{ fontSize: '1.3rem', margin: 0 }}>AI Coach Report</h3>
@@ -81,8 +98,25 @@ export default function Results({ stats, onRestart }) {
                 </div>
             </div>
 
-            <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center' }}>
+            <AIChat stats={stats} />
+
+            <div style={{ marginTop: '3rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
                 <button className="btn" onClick={onRestart} style={{ fontSize: '1.1rem', padding: '1rem 2.5rem' }}>Start New Test</button>
+
+                {stats.mode === 'daily' && (
+                    <button
+                        className="btn btn-secondary"
+                        onClick={() => {
+                            const date = new Date().toLocaleDateString();
+                            const text = `Typing Daily ${date}: ${wpm} WPM | ${accuracy}% | typign.ai`;
+                            navigator.clipboard.writeText(text);
+                            alert('Result copied to clipboard!');
+                        }}
+                        style={{ fontSize: '1.1rem', padding: '1rem 2.5rem' }}
+                    >
+                        Share Result
+                    </button>
+                )}
             </div>
         </div>
     );

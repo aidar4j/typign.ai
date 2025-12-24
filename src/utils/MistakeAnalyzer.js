@@ -38,12 +38,12 @@ export class MistakeAnalyzer {
 
         // First keystroke of test?
         if (this.keystrokes.length === 0) {
-            this.currentWordStart = now; // Start tracking first word roughly
+            this.currentWordStart = now;
         }
 
         this.keystrokes.push({
             char,
-            expected: expected || char,
+            expected: expected || null,
             timestamp: now,
             latency
         });
@@ -135,7 +135,8 @@ export class MistakeAnalyzer {
             patterns,
             slowKeys,
             consistency: consistencyScore,
-            rhythmType
+            rhythmType,
+            keystrokes: this.keystrokes // Export for replay
         };
     }
 }

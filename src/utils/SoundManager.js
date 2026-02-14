@@ -1,5 +1,5 @@
 let audioContext = null;
-let isEnabled = true;
+let isEnabled = false;
 
 const initAudio = () => {
     if (audioContext) return;

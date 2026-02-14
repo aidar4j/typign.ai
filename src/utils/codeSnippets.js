@@ -49,10 +49,9 @@ export const CODE_SNIPPETS = [
 
 export const getRandomSnippet = () => {
     const random = CODE_SNIPPETS[Math.floor(Math.random() * CODE_SNIPPETS.length)];
-    // Simple robust tokenizer: split by spaces but preserve structure somewhat
-    // For this engine, we flatten newlines to spaces for now or treat them as part of the word
     return {
-        words: random.code.split(/\s+/).filter(w => w.length > 0),
+        // For Code Mode, we want lines as "words" to preserve structure/indentation.
+        words: random.code.split('\n'),
         raw: random.code
     };
 };

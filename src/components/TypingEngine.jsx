@@ -163,7 +163,51 @@ export default function TypingEngine({ onComplete, onRestart, mode, customWords 
         }
 
         if (e.key === ' ') {
+            if (mode === 'code') {
+                // In code mode, Space is just a character to type
+                if (!isActive) {
+                    setIsActive(true);
+                    startTimeRef.current = Date.now();
+                }
+
+                const expectedChar = currentWord[currCharIndex];
+                if (!expectedChar) return; // End of line
+
+                const isCorrect = e.key === expectedChar;
+
+                if (!isCorrect) {
+                    playError();
+                    analyzerRef.current.recordMistake(expectedChar, e.key);
+                } else {
+                    playClick();
+                }
+                analyzerRef.current.recordKeystroke(e.key, expectedChar);
+
+                setTypedHistory(prev => ({
+                    ...prev,
+                    [currWordIndex]: {
+                        ...(prev[currWordIndex] || {}),
+                        [currCharIndex]: isCorrect ? 'correct' : 'incorrect'
+                    }
+                }));
+
+                setCurrCharIndex(prev => prev + 1);
+                return;
+            }
+
             playClick();
+            if (currWordIndex === words.length - 1) {
+                endTestRef.current();
+                return;
+            }
+            setCurrWordIndex(prev => prev + 1);
+            setCurrCharIndex(0);
+            return;
+        }
+
+        if (e.key === 'Enter' && mode === 'code') {
+            // Enter moves to next line (next word)
+            e.preventDefault();
             if (currWordIndex === words.length - 1) {
                 endTestRef.current();
                 return;
@@ -234,7 +278,7 @@ export default function TypingEngine({ onComplete, onRestart, mode, customWords 
                 </button>
             </div>
 
-            <div className="typing-container" ref={containerRef}>
+            <div className={`typing-container ${mode === 'code' ? 'ide-mode' : ''}`} ref={containerRef}>
                 {words.map((word, wIdx) => {
                     let className = "word";
                     if (wIdx < currWordIndex) className += " typed";
@@ -243,6 +287,7 @@ export default function TypingEngine({ onComplete, onRestart, mode, customWords 
 
                     return (
                         <div key={wIdx} className={className} ref={isCurrent ? activeWordRef : null}>
+                            {mode === 'code' && <span className="line-number">{wIdx + 1}</span>}
                             {word.split('').map((char, cIdx) => {
                                 let status = '';
                                 if (wIdx < currWordIndex) {
@@ -263,6 +308,10 @@ export default function TypingEngine({ onComplete, onRestart, mode, customWords 
                                     </span>
                                 );
                             })}
+                            {/* Explicit space definition for cursor */}
+                            {wIdx === currWordIndex && currCharIndex === word.length && (
+                                <span className="letter active"></span>
+                            )}
                         </div>
                     );
                 })}

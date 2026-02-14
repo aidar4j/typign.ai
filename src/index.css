@@ -156,19 +156,31 @@ p.subtitle {
 
 /* Caret */
 .letter.active {
-  background-color: rgba(0, 113, 227, 0.1);
-  border-radius: 2px;
+  position: relative;
 }
 
-.letter.active::after {
+.letter.active::before {
   content: "";
   position: absolute;
-  left: 0;
+  left: -1px;
+  top: 0;
   bottom: 0;
-  width: 100%;
-  height: 2px;
-  background-color: var(--accent-color);
-  animation: pulse 1s infinite;
+  width: 2px;
+  background-color: #ffc107;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes pulse {
@@ -243,4 +255,89 @@ p.subtitle {
 
 .recommendation-item .icon {
   font-size: 1.2rem;
+}
+
+/* IDE Mode */
+.typing-container.ide-mode {
+  display: block;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 1.1rem;
+  background-color: #1e1e1e;
+  color: #808080;
+  padding: 1.5rem;
+  border-radius: 8px;
+  height: 400px;
+  overflow-y: auto;
+}
+
+.ide-mode .word {
+  display: flex;
+  margin-right: 0;
+  margin-bottom: 2px;
+  white-space: pre;
+  /* Important for indentation */
+  align-items: baseline;
+}
+
+.ide-mode .line-number {
+  display: inline-block;
+  width: 2.5em;
+  /* Fixed width */
+  margin-right: 1.5em;
+  text-align: right;
+  color: #858585;
+  font-size: 0.9em;
+  user-select: none;
+  border-right: 1px solid #333;
+  padding-right: 0.5em;
+  opacity: 0.7;
+}
+
+.ide-mode .letter {
+  transition: none;
+  /* Instant typing feel */
+  opacity: 0.6;
+}
+
+.ide-mode .letter.correct {
+  color: #d4d4d4;
+  /* Default light text */
+  font-weight: normal;
+  opacity: 1;
+}
+
+.ide-mode .letter.incorrect {
+  background-color: #f44336;
+  color: white;
+}
+
+.ide-mode .letter.active {
+  position: relative;
+  background-color: transparent;
+  color: inherit;
+}
+
+.ide-mode .letter.active::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #ffc107;
+  animation: blink 1s infinite;
+}
+
+/* Scrollbar for IDE */
+.ide-mode::-webkit-scrollbar {
+  width: 10px;
+}
+
+.ide-mode::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.ide-mode::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 5px;
 }

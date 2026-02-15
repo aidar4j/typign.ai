@@ -146,12 +146,10 @@ p.subtitle {
 
 .letter.correct {
   color: var(--text-primary);
-  font-weight: 600;
 }
 
 .letter.incorrect {
   color: var(--error-color);
-  font-weight: 600;
 }
 
 /* Caret */
@@ -302,7 +300,6 @@ p.subtitle {
 .ide-mode .letter.correct {
   color: #d4d4d4;
   /* Default light text */
-  font-weight: normal;
   opacity: 1;
 }
 

@@ -5,7 +5,7 @@ import { getRandomSnippet } from './utils/codeSnippets';
 
 function App() {
   const [results, setResults] = useState(null);
-  const [mode, setMode] = useState('training'); // 'training' | 'daily' | 'code' | 'custom'
+  const [mode, setMode] = useState('daily'); // 'training' | 'daily' | 'code' | 'custom'
   const [restartKey, setRestartKey] = useState(0);
   const [customWords, setCustomWords] = useState([]);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);

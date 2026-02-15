@@ -115,16 +115,46 @@ export class MistakeAnalyzer {
         // Simplifying: Just return generic coach messages.
 
         const coachMessages = [];
+        const accuracyRate = this.keystrokes.length > 0 ? ((this.keystrokes.length - this.mistakes.length) / this.keystrokes.length) * 100 : 100;
+
+        // Enhanced rhythm-based feedback
         if (rhythmType === "Burst (Stop & Go)") {
-            coachMessages.push("Your rhythm is 'Burst'. You type fast chunks but pause often. Try to slow down slightly to maintain continuous flow.");
+            coachMessages.push("You type in bursts—fast on familiar keys but pause between challenging ones. Focus on maintaining a steady pace rather than rushing.");
         } else if (rhythmType === "Metronome (Steady)") {
-            coachMessages.push("Excellent 'Metronome' rhythm! You are consistent like a machine.");
+            if (accuracyRate > 95) {
+                coachMessages.push("Excellent! Your rhythm is steady and consistent like a metronome. This is the hallmark of expert typing.");
+            } else {
+                coachMessages.push("Great steady rhythm! Now focus on accuracy to reach expert level.");
+            }
         } else {
-            coachMessages.push("Your rhythm is 'Variable'. Work on smoothing out hesitations between difficult keys.");
+            coachMessages.push("Your rhythm varies—some keys flow smoothly while others create hesitation. Practice difficult key combinations to smooth your flow.");
         }
 
+        // Accuracy-based feedback
+        if (accuracyRate < 90) {
+            coachMessages.push("⚠️ Slow down! Prioritize accuracy over speed. Speed will come naturally once muscle memory is solid.");
+        } else if (accuracyRate >= 98) {
+            coachMessages.push("💯 Outstanding accuracy! You're building excellent muscle memory.");
+        }
+
+        // Specific key improvement suggestions
         if (slowKeys.length > 0) {
-            coachMessages.push(`Drill the letters '${slowKeys.map(k => k.char).join("', '")}' to improve overall speed.`);
+            const slowKeysList = slowKeys.map(k => `'${k.char}'`).join(", ");
+            const avgDelay = Math.round(slowKeys[0].avg);
+            coachMessages.push(`🎯 Your slowest keys are ${slowKeysList}. Practice typing these in common words to build speed (current avg: ${avgDelay}ms).`);
+        }
+
+        // Pattern-based feedback
+        if (patterns.length > 0) {
+            const topPattern = patterns[0];
+            coachMessages.push(`📊 You frequently confuse '${topPattern.actual}' for '${topPattern.expected}'. Focus on these keys in practice drills.`);
+        }
+
+        // Consistency feedback
+        if (consistencyScore < 70) {
+            coachMessages.push("🌊 Your timing fluctuates significantly. Try to maintain a more even rhythm throughout the test.");
+        } else if (consistencyScore >= 90) {
+            coachMessages.push("⭐ Exceptional consistency! Your timing is remarkably stable.");
         }
 
         return {

@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { generateWords, generateDailyWords } from '../utils/words';
 import { MistakeAnalyzer } from '../utils/MistakeAnalyzer';
 import { playClick, playError, toggleSound, getSoundEnabled } from '../utils/SoundManager';
+import { isTodayCompleted, getLastDailyStats, getDailyChallengeNumber, getStreakData, getStreakEmojis } from '../utils/streakManager';
 
-const DURATION = 60;
+const DURATION = 15;
 
 export default function TypingEngine({ onComplete, onRestart, mode, customWords }) {
     const [words, setWords] = useState([]);
@@ -15,6 +16,7 @@ export default function TypingEngine({ onComplete, onRestart, mode, customWords 
     const [typedHistory, setTypedHistory] = useState({}); // { wordIndex: { charIndex: status } }
 
     const [isSoundEnabled, setIsSoundEnabled] = useState(getSoundEnabled());
+    const [isDailyCompleted, setIsDailyCompleted] = useState(false);
 
     const analyzerRef = useRef(new MistakeAnalyzer());
     const timerRef = useRef(null);
@@ -23,6 +25,14 @@ export default function TypingEngine({ onComplete, onRestart, mode, customWords 
 
     useEffect(() => {
         if (mode === 'daily') {
+            // Check if already completed
+            if (isTodayCompleted()) {
+                setIsDailyCompleted(true);
+                return;
+            } else {
+                setIsDailyCompleted(false);
+            }
+
             const dailyData = generateDailyWords(new Date());
             setWords(dailyData.words);
             setAuthor(dailyData.author);
@@ -264,6 +274,120 @@ export default function TypingEngine({ onComplete, onRestart, mode, customWords 
         window.addEventListener('keydown', handleGlobalKeyDown);
         return () => window.removeEventListener('keydown', handleGlobalKeyDown);
     }, [currWordIndex, currCharIndex, isActive, words, timeLeft]);
+
+    // If daily challenge is already completed, show completed state
+    if (mode === 'daily' && isDailyCompleted) {
+        const lastStats = getLastDailyStats();
+        const streakData = getStreakData();
+        const streak = streakData?.currentStreak || 0;
+        const streakEmojis = getStreakEmojis(streak);
+        const challengeNum = getDailyChallengeNumber();
+
+        const handleShare = () => {
+            if (lastStats) {
+                const shareText = `typign.ai Daily Challenge #${challengeNum}\n${streakEmojis} ${streak} day streak\n${lastStats.wpm} WPM | ${lastStats.accuracy}% accuracy\n\ntypign.ai`;
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(shareText).then(() => {
+                        alert('✅ Copied to clipboard!');
+                    }).catch(() => {
+                        prompt('Copy this text:', shareText);
+                    });
+                } else {
+                    prompt('Copy this text:', shareText);
+                }
+            }
+        };
+
+        return (
+            <div className="card" style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
+                <div style={{ padding: '3rem 2rem' }}>
+                    <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>✅</div>
+                    <h2 style={{ fontSize: '2rem', marginBottom: '1rem', color: 'var(--text-primary)' }}>
+                        Challenge #{challengeNum} Complete!
+                    </h2>
+
+                    {lastStats && (
+                        <>
+                            <div style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                                {streak > 0 && (
+                                    <div style={{
+                                        background: 'linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%)',
+                                        padding: '0.8rem 1.2rem',
+                                        borderRadius: '10px',
+                                        display: 'inline-block',
+                                        marginBottom: '1.5rem',
+                                        boxShadow: '0 4px 12px rgba(255, 107, 107, 0.3)'
+                                    }}>
+                                        <span style={{ fontSize: '1.5rem', marginRight: '0.5rem' }}>{streakEmojis}</span>
+                                        <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white' }}>
+                                            {streak} day streak!
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                                    <div style={{ background: '#f8f9fa', padding: '1.2rem', borderRadius: '10px' }}>
+                                        <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            {lastStats.wpm}
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginTop: '0.3rem' }}>
+                                            WPM
+                                        </div>
+                                    </div>
+                                    <div style={{ background: '#f8f9fa', padding: '1.2rem', borderRadius: '10px' }}>
+                                        <div style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                                            {lastStats.accuracy}%
+                                        </div>
+                                        <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', textTransform: 'uppercase', marginTop: '0.3rem' }}>
+                                            Accuracy
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={handleShare}
+                                style={{
+                                    width: '100%',
+                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '1rem 2rem',
+                                    fontSize: '1.1rem',
+                                    fontWeight: 600,
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    marginBottom: '1rem',
+                                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '0.5rem'
+                                }}
+                            >
+                                <span>Share</span>
+                                <span style={{ fontSize: '1.2rem' }}>📤</span>
+                            </button>
+                        </>
+                    )}
+
+                    <p style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginTop: '1.5rem' }}>
+                        Come back tomorrow for a new challenge! 🔥
+                    </p>
+
+                    <div style={{ marginTop: '2rem' }}>
+                        <button
+                            className="btn btn-secondary"
+                            onClick={() => window.location.reload()}
+                        >
+                            Try Other Modes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="card" onClick={() => inputRef.current?.focus()}>
